@@ -1,4 +1,4 @@
-from .metal_requests import get_all_metals
-from .order_requests import get_all_orders
-from .style_requests import get_all_styles
-from .size_requests import get_all_sizes
+from .metal_requests import get_all_metals, get_single_metal
+from .order_requests import get_all_orders, get_single_order
+from .style_requests import get_all_styles, get_single_style
+from .size_requests import get_all_sizes, get_single_size
