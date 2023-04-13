@@ -31,7 +31,6 @@ class HandleRequests(BaseHTTPRequestHandler):
 
     def do_GET(self):
         """Handles GET requests to the server """
-        self._set_headers(200)
         response = {}
 
         (resource, id) = self.parse_url(self.path)
@@ -39,28 +38,60 @@ class HandleRequests(BaseHTTPRequestHandler):
         if resource == "metals":
             if id is not None:
                 response = get_single_metal(id)
+                if response is None: 
+                    self._set_headers(404)
+                    response = {
+                        "message": f"The selected metal is not in stock right not."}
+                else: 
+                    self._set_headers(200)
             else: 
+                self._set_headers(200)
                 response = get_all_metals()
 
         if resource == "orders":
             if id is not None:
                 response = get_single_order(id)
-            else: response = get_all_orders()
+                if response is None: 
+                    self._set_headers(404)
+                    response = {
+                        "message": "This order was never placed or was cancelled"
+                    }
+                else: 
+                    self._set_headers(200)
+            else: 
+                self._set_headers(200)
+                response = get_all_orders()
 
         if resource == "sizes":
             if id is not None:
                 response = get_single_size(id)
-            else: response = get_all_sizes()
+                if response is None: 
+                    self._set_headers(404)
+                    response = {
+                        "message": f"The selected size is not in stock right not."}
+                else: 
+                    self._set_headers(200)
+            else: 
+                self._set_headers(200)
+                response = get_all_sizes()
         
         if resource == "styles":
             if id is not None: 
                 response = get_single_style(id)
-            else: response = get_all_styles()
+                if response is None: 
+                    self._set_headers(404)
+                    response = {
+                        "message": f"The selected style is not in stock right not."}
+                else: 
+                    self._set_headers(200)
+            else: 
+                self._set_headers(200)
+                response = get_all_styles()
 
         self.wfile.write(json.dumps(response).encode())
 
+
     def do_POST(self):
-        self._set_headers(201)
         content_len = int(self.headers.get('content-length', 0))
         post_body = self.rfile.read(content_len)
 
@@ -77,27 +108,33 @@ class HandleRequests(BaseHTTPRequestHandler):
         # the orange squiggle, you'll define the create_animal
         # function next.
         if resource == "orders":
-            new_order = create_order(post_body)
+            if "metal_id" in post_body and "size_id" in post_body and "style_id" in post_body and "timestamp" in post_body:
+                new_order = create_order(post_body)
+                self._set_headers(201)
+            else: 
+                self._set_headers(400)
+                new_order = {
+                "message": f'{"please complete all required fields"}'
+                }
 
         # Encode the new animal and send in response
         self.wfile.write(json.dumps(new_order).encode())
 
     def do_PUT(self):
         """""Handles PUT requests to the server"""""
-        self._set_headers(204)
         content_len = int(self.headers.get('content-length', 0))
         post_body = self.rfile.read(content_len)
         post_body = json.loads(post_body)
+        response = {}
 
         # Parse the URL
         (resource, id) = self.parse_url(self.path)
 
-        # Delete a single animal from the list
         if resource == "orders":
-            update_order(id, post_body)
+            self._set_headers(405)
+            response = {"message": "modifying orders is not supported"}
 
-        # Encode the new animal and send in response
-        self.wfile.write("".encode())
+        self.wfile.write(json.dumps(response).encode())
 
     def _set_headers(self, status):
         """Sets the status code, Content-Type and Access-Control-Allow-Origin
@@ -140,6 +177,7 @@ class HandleRequests(BaseHTTPRequestHandler):
 def main():
     """Starts the server on port 8088 using the HandleRequests class
     """
+    print("starting server")
     host = ''
     port = 8088
     HTTPServer((host, port), HandleRequests).serve_forever()

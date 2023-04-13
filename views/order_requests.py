@@ -1,3 +1,7 @@
+from .metal_requests import get_single_metal
+from .size_requests import get_single_size
+from .style_requests import get_single_style
+
 ORDERS = [
         {
             "id": 1,
@@ -21,7 +25,13 @@ def get_single_order(id):
         # Dictionaries in Python use [] notation to find a key
         # instead of the dot notation that JavaScript used.
         if order["id"] == id:
-            requested_order = order
+            requested_order = order.copy()
+            metal = get_single_metal(requested_order["metal_id"])
+            requested_order["metal"] = metal
+            size = get_single_size(requested_order["size_id"])
+            requested_order["size"] = size
+            style = get_single_style(requested_order["style_id"])
+            requested_order["style"] = style
 
     return requested_order
 

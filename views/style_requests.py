@@ -25,7 +25,7 @@ def get_single_style(id):
 
     # Iterate the ANIMALS list above. Very similar to the
     # for..of loops you used in JavaScript.
-    for style in STYLE:
+    for style in STYLES:
         # Dictionaries in Python use [] notation to find a key
         # instead of the dot notation that JavaScript used.
         if style["id"] == id:
