@@ -107,19 +107,21 @@ def get_single_order(id):
     return order.__dict__
 
 def create_order(order):
-    # Get the id value of the last order in the list
-    max_id = ORDERS[-1]["id"]
+    """function to create an order"""
+    with sqlite3.connect("./kneeldiamonds.sqlite3") as conn:
 
-    # Add 1 to whatever that number is
-    new_id = max_id + 1
+        db_cursor = conn.cursor()
 
-    # Add an `id` property to the animal dictionary
-    order["id"] = new_id
+        db_cursor.execute("""
+        INSERT INTO Orders
+            (metal_id, size_id, style_id, timestamp)
+        VALUES 
+            (?, ?, ?, ?);
+        """, (order['metal_id'], order['size_id'], order['style_id'], order['timestamp'], ))
 
-    # Add the animal dictionary to the list
-    ORDERS.append(order)
+        id = db_cursor.lastrowid
+        order['id'] = id
 
-    # Return the dictionary with `id` property added
     return order
 
 def delete_order(id):
