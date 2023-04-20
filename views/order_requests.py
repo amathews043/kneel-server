@@ -3,17 +3,6 @@ import json
 
 from models import Order, Metal, Size, Style
 
-
-ORDERS = [
-        {
-            "id": 1,
-            "metal_id": 3,
-            "size_id": 2,
-            "style_id": 3,
-            "timestamp": 1614659931693
-        }
-    ]
-
 def get_all_orders():
     """function to get the orders"""
 
@@ -136,10 +125,24 @@ def delete_order(id):
         """, (id, ))
 
 def update_order(id, new_order):
-    # Iterate the orderS list, but use enumerate() so that
-    # you can access the index value of each item.
-    for index, order in enumerate(ORDERS):
-        if order["id"] == id:
-            # Found the order. Update the value.
-            ORDERS[index] = new_order
-            break
+    """function to update an existing order"""
+
+    with sqlite3.connect("./kneeldiamonds.sqlite3") as conn: 
+        db_cursor = conn.cursor()
+
+        db_cursor.execute("""
+        UPDATE Orders 
+            SET 
+                metal_id = ?, 
+                size_id = ?, 
+                style_id = ?, 
+                timestamp = ?
+        WHERE id = ?
+        """, (new_order['metal_id'], new_order['size_id'], new_order['style_id'], new_order['timestamp'], id))
+
+        rows_affected = db_cursor.rowcount
+
+        if rows_affected == 0: 
+            return False 
+        else: 
+            return True

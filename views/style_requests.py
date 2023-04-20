@@ -3,24 +3,6 @@ import json
 
 from models import Style
 
-STYLES = [
-        { 
-            "id": 1, 
-            "style": "Classic", 
-            "price": 500 
-        },
-        { 
-            "id": 2, 
-            "style": "Modern", 
-            "price": 710 
-        },
-        { 
-            "id": 3, 
-            "style": "Vintage", 
-            "price": 965 
-        }
-    ]
-
 def get_all_styles():
     """function to get all styles from database"""
 
@@ -70,3 +52,24 @@ def get_single_style(id):
         style = Style(data['id'], data['style'], data['price'])
 
         return style.__dict__
+    
+def update_style(id, new_style):
+    """function to update an existing style record in the database"""
+
+    with sqlite3.connect("./kneeldiamonds.sqlite3") as conn: 
+        db_cursor = conn.cursor()
+
+        db_cursor.execute("""
+        UPDATE Styles 
+            SET
+            style = ?, 
+            price = ?
+        WHERE id = ? 
+        """, (new_style['style'], new_style['price'], id))
+
+        rows_affected = db_cursor.rowcount
+
+        if rows_affected == 0: 
+            return False 
+        else: 
+            return True
