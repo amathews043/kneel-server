@@ -33,7 +33,7 @@ CREATE TABLE `Orders`
 
 INSERT INTO Metals VALUES (null, "Sterling Silver", 12.42);
 
-SELECT * from Styles
+SELECT * from Sizes
 
 INSERT INTO METALS VALUES (null, "14K Gold", 736.4);
 INSERT INTO METALS VALUES (null, "24K Gold", 1258.9);

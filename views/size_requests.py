@@ -62,15 +62,24 @@ def get_all_sizes():
     return sizes
 
 def get_single_size(id):
-    # Variable to hold the found animal, if it exists
-    requested_size = None
+    """function to get a single size from the database"""
 
-    # Iterate the ANIMALS list above. Very similar to the
-    # for..of loops you used in JavaScript.
-    for size in SIZES:
-        # Dictionaries in Python use [] notation to find a key
-        # instead of the dot notation that JavaScript used.
-        if size["id"] == id:
-            requested_size = size
+    with sqlite3.connect("./kneeldiamonds.sqlite3") as conn:
+        conn.row_factory = sqlite3.Row
 
-    return requested_size
+        db_cursor = conn.cursor()
+
+        db_cursor.execute("""
+        SELECT 
+            s.id,
+            s.carets,
+            s.price
+        FROM Sizes s
+        WHERE id = ?
+        """, (id, ))
+
+        data = db_cursor.fetchone()
+
+        size = Size(data['id'], data['carets'], data['price'])
+
+        return size.__dict__
