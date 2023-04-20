@@ -1,3 +1,9 @@
+import sqlite3
+import json
+
+from models import Order, Metal, Size, Style
+
+
 ORDERS = [
         {
             "id": 1,
@@ -9,7 +15,53 @@ ORDERS = [
     ]
 
 def get_all_orders():
-    return ORDERS
+    """function to get the orders"""
+
+    with sqlite3.connect("./kneeldiamonds.sqlite3") as conn:
+        conn.row_factory = sqlite3.Row
+        db_cursor = conn.cursor()
+
+        db_cursor.execute("""
+        SELECT 
+            o.id as order_id,
+            o.metal_id as metal_id,
+            o.size_id as size_id,
+            o.style_id as style_id,
+            o.timestamp as timestamp,
+            m.metal as metal_name,
+            m.price as metal_price, 
+            s.carets as carets, 
+            s.price as carets_price,
+            st.style as style,
+            st.price as style_price
+        FROM Orders o
+        JOIN Metals m 
+            on m.id = o.metal_id
+        JOIN Sizes s
+            on s.id = o.size_id
+        JOIN Styles as st
+            on st.id = o.style_id
+        """)
+
+        orders = []
+
+        dataset =db_cursor.fetchall()
+    
+    for row in dataset: 
+        order = Order(row['order_id'], row['metal_id'], row['size_id'], row['style_id'], row['timestamp'])
+
+        metal = Metal(row['metal_id'], row['metal_name'], row['metal_price'])
+        order.metal = metal.__dict__
+
+        size = Size(row['size_id'], row['carets'], row['carets_price'])
+        order.size = size.__dict__
+
+        style = Style(row['style_id'], row['style'], row['style_price'])
+        order.style = style.__dict__
+
+        orders.append(order.__dict__)
+
+    return orders
 
 def get_single_order(id):
     # Variable to hold the found animal, if it exists

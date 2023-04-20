@@ -1,3 +1,8 @@
+import sqlite3
+import json
+
+from models import Metal
+
 METALS = [
     {
         "id": 1,
@@ -27,7 +32,30 @@ METALS = [
 ]
 
 def get_all_metals():
-    return METALS
+    """function to get all metals"""
+
+    with sqlite3.connect("./kneeldiamonds.sqlite3") as conn: 
+        conn.row_factory = sqlite3.Row
+        db_cursor = conn.cursor()
+
+        db_cursor.execute("""
+        SELECT 
+            m.id, 
+            m.metal, 
+            m.price 
+        FROM Metals m
+        """)
+
+        metals = []
+
+        dataset = db_cursor.fetchall()
+
+        for row in dataset: 
+            metal = Metal(row['id'], row['metal'], row['price'])
+
+            metals.append(metal.__dict__)
+            
+        return metals
 
 def get_single_metal(id):
     # Variable to hold the found animal, if it exists
