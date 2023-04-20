@@ -1,3 +1,8 @@
+import sqlite3
+import json
+
+from models import Size
+
 SIZES = [
         { 
             "id": 1, 
@@ -31,7 +36,30 @@ SIZES = [
     ]
 
 def get_all_sizes():
-    return SIZES
+    """function to get all size options """
+
+    with sqlite3.connect("./kneeldiamonds.sqlite3") as conn: 
+        conn.row_factory = sqlite3.Row
+        db_cursor = conn.cursor()
+
+        db_cursor.execute("""
+        SELECT 
+            s.id,
+            s.carets,
+            s.price
+        FROM Sizes s
+        """)
+
+        sizes = []
+
+        dataset = db_cursor.fetchall()
+
+    for row in dataset: 
+        size = Size(row['id'], row['carets'], row['price'])
+
+        sizes.append(size.__dict__)
+
+    return sizes
 
 def get_single_size(id):
     # Variable to hold the found animal, if it exists
