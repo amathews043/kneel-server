@@ -58,15 +58,23 @@ def get_all_metals():
         return metals
 
 def get_single_metal(id):
-    # Variable to hold the found animal, if it exists
-    requested_metal = None
+    """function to get a single metal from the database"""
 
-    # Iterate the ANIMALS list above. Very similar to the
-    # for..of loops you used in JavaScript.
-    for metal in METALS:
-        # Dictionaries in Python use [] notation to find a key
-        # instead of the dot notation that JavaScript used.
-        if metal["id"] == id:
-            requested_metal = metal
+    with sqlite3.connect("./kneeldiamonds.sqlite3") as conn: 
+        conn.row_factory = sqlite3.Row
+        db_cursor = conn.cursor()
 
-    return requested_metal
+        db_cursor.execute("""
+        SELECT 
+            m.id, 
+            m.metal, 
+            m.price 
+        FROM Metals m
+        WHERE id = ?
+        """, (id, )) 
+
+        data = db_cursor.fetchone()
+
+        metal = Metal(data['id'], data['metal'], data['price'])
+
+    return metal.__dict__

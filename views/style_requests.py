@@ -49,15 +49,24 @@ def get_all_styles():
 
 
 def get_single_style(id):
-    # Variable to hold the found animal, if it exists
-    requested_style = None
+    """function to get a single style from the database"""
 
-    # Iterate the ANIMALS list above. Very similar to the
-    # for..of loops you used in JavaScript.
-    for style in STYLE:
-        # Dictionaries in Python use [] notation to find a key
-        # instead of the dot notation that JavaScript used.
-        if style["id"] == id:
-            requested_style = style
+    with sqlite3.connect("./kneeldiamonds.sqlite3") as conn: 
+        conn.row_factory = sqlite3.Row
 
-    return requested_style
+        db_cursor = conn.cursor()
+
+        db_cursor.execute("""
+        SELECT 
+            s.id, 
+            s.style, 
+            s.price
+        FROM Styles s 
+        WHERE id = ?
+        """, (id, ))
+
+        data = db_cursor.fetchone()
+
+        style = Style(data['id'], data['style'], data['price'])
+
+        return style.__dict__

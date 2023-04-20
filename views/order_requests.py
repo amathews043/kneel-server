@@ -64,18 +64,47 @@ def get_all_orders():
     return orders
 
 def get_single_order(id):
-    # Variable to hold the found animal, if it exists
-    requested_order = None
+    """function to get a single order from the database"""
 
-    # Iterate the ANIMALS list above. Very similar to the
-    # for..of loops you used in JavaScript.
-    for order in ORDERS:
-        # Dictionaries in Python use [] notation to find a key
-        # instead of the dot notation that JavaScript used.
-        if order["id"] == id:
-            requested_order = order
+    with sqlite3.connect("./kneeldiamonds.sqlite3") as conn: 
+        conn.row_factory = sqlite3.Row
 
-    return requested_order
+        db_cursor = conn.cursor()
+
+        db_cursor.execute("""
+        SELECT 
+            o.id as order_id, 
+            o.metal_id as metal_id,
+            o.size_id as size_id,
+            o.style_id as style_id,
+            o.timestamp as timestamp,
+            m.metal as metal_name,
+            m.price as metal_price, 
+            s.carets as carets, 
+            s.price as carets_price,
+            st.style as style,
+            st.price as style_price
+        FROM Orders o
+        JOIN Metals m 
+            on m.id = o.metal_id
+        JOIN Sizes s
+            on s.id = o.size_id
+        JOIN Styles as st
+            on st.id = o.style_id
+        WHERE o.id = ?
+        """, (id, ))
+
+        data = db_cursor.fetchone()
+
+        order = Order(data['order_id'], data['metal_id'], data['size_id'], data['style_id'], data['timestamp'])
+        size = Size(data['size_id'], data['carets'], data['carets_price'])
+        order.size = size.__dict__
+        metal = Metal(data['metal_id'], data['metal_name'], data['metal_price'])
+        order.metal = metal.__dict__
+        style = Style(data['style_id'], data['style'], data['style_price'])
+        order.style = style.__dict__
+
+    return order.__dict__
 
 def create_order(order):
     # Get the id value of the last order in the list
