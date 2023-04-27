@@ -35,19 +35,26 @@ SIZES = [
         }
     ]
 
-def get_all_sizes():
+def get_all_sizes(query_params={}):
     """function to get all size options """
 
     with sqlite3.connect("./kneeldiamonds.sqlite3") as conn: 
         conn.row_factory = sqlite3.Row
         db_cursor = conn.cursor()
 
-        db_cursor.execute("""
+        sort_by = ""
+
+        if "_sortBy" in query_params:
+            if query_params['_sortBy'][0] == 'price':
+                sort_by = "ORDER BY s.price"
+
+        db_cursor.execute(f"""
         SELECT 
             s.id,
             s.carets,
             s.price
         FROM Sizes s
+        {sort_by}
         """)
 
         sizes = []
@@ -83,3 +90,16 @@ def get_single_size(id):
         size = Size(data['id'], data['carets'], data['price'])
 
         return size.__dict__
+    
+def update_size(id, size):
+    with sqlite3.connect("./kneeldiamonds.sqlite3") as conn: 
+        db_cursor = conn.cursor()
+
+        db_cursor.execute("""
+        UPDATE Sizes
+            SET 
+                carets = ?,
+                price = ?
+        WHERE id = ?
+        """,(size['carets'], size['price'], id))
+    

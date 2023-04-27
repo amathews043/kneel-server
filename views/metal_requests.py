@@ -3,47 +3,25 @@ import json
 
 from models import Metal
 
-METALS = [
-    {
-        "id": 1,
-        "metal": "Sterling Silver",
-        "price": 12.42
-    },
-    {
-        "id": 2,
-        "metal": "14K Gold",
-        "price": 736.4
-    },
-    {
-        "id": 3,
-        "metal": "24K Gold",
-        "price": 1258.9
-    },
-    {
-        "id": 4,
-        "metal": "Platinum",
-        "price": 795.45
-    },
-    {
-        "id": 5,
-        "metal": "Palladium",
-        "price": 1241
-    }
-]
-
-def get_all_metals():
+def get_all_metals(query_params={}):
     """function to get all metals"""
 
     with sqlite3.connect("./kneeldiamonds.sqlite3") as conn: 
         conn.row_factory = sqlite3.Row
         db_cursor = conn.cursor()
 
-        db_cursor.execute("""
+        sort_by = ""
+
+        if '_sortBy' in query_params: 
+            if query_params['_sortBy'][0] == 'price':
+                sort_by = "ORDER BY m.price"
+        db_cursor.execute(f"""
         SELECT 
             m.id, 
             m.metal, 
             m.price 
         FROM Metals m
+        {sort_by}
         """)
 
         metals = []

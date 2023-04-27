@@ -1,61 +1,90 @@
 import json
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from views import get_all_sizes, get_all_metals, get_all_orders, get_all_styles, get_single_metal, get_single_size, get_single_style
-from views import get_single_order, create_order, delete_order, update_order
-
+from views import get_single_order, create_order, delete_order, update_order, update_style, update_size
+from urllib.parse import urlparse, parse_qs
 
 class HandleRequests(BaseHTTPRequestHandler):
     """Controls the functionality of any GET, PUT, POST, DELETE requests to the server
     """
 
     def parse_url(self, path):
-        # Just like splitting a string in JavaScript. If the
-        # path is "/animals/1", the resulting list will
-        # have "" at index 0, "animals" at index 1, and "1"
-        # at index 2.
-        path_params = path.split("/") # this splits the string into a list
-        resource = path_params[1]
+        url_components = urlparse(path)
+        path_params = url_components.path.strip("/").split("/")
+        query_params = {}
+
+        if url_components.query != '':
+            query_params = parse_qs(url_components.query)
+
+        resource = path_params[0]
         id = None
 
-        # Try to get the item at index 2
         try:
-            # Convert the string "1" to the integer 1
-            # This is the new parseInt()
-            id = int(path_params[2])
+            id = int(path_params[1])
         except IndexError:
             pass  # No route parameter exists: /animals
         except ValueError:
             pass  # Request had trailing slash: /animals/
 
-        return (resource, id) # this is a tuple
+        return (resource, id, query_params)
+
+        # # Just like splitting a string in JavaScript. If the
+        # # path is "/animals/1", the resulting list will
+        # # have "" at index 0, "animals" at index 1, and "1"
+        # # at index 2.
+        # path_params = path.split("/") # this splits the string into a list
+        # resource = path_params[1]
+        # id = None
+
+        # # Try to get the item at index 2
+        # try:
+        #     # Convert the string "1" to the integer 1
+        #     # This is the new parseInt()
+        #     id = int(path_params[2])
+        # except IndexError:
+        #     pass  # No route parameter exists: /animals
+        # except ValueError:
+        #     pass  # Request had trailing slash: /animals/
+
+        # return (resource, id) # this is a tuple
 
     def do_GET(self):
         """Handles GET requests to the server """
         self._set_headers(200)
         response = {}
 
-        (resource, id) = self.parse_url(self.path)
+        (resource, id, query_params) = self.parse_url(self.path)
 
-        if resource == "metals":
-            if id is not None:
-                response = get_single_metal(id)
-            else: 
-                response = get_all_metals()
+        if '?' not in self.path:
 
-        if resource == "orders":
-            if id is not None:
-                response = get_single_order(id)
-            else: response = get_all_orders()
+            if resource == "metals":
+                if id is not None:
+                    response = get_single_metal(id)
+                else: 
+                    response = get_all_metals()
 
-        if resource == "sizes":
-            if id is not None:
-                response = get_single_size(id)
-            else: response = get_all_sizes()
-        
-        if resource == "styles":
-            if id is not None: 
-                response = get_single_style(id)
-            else: response = get_all_styles()
+            if resource == "orders":
+                if id is not None:
+                    response = get_single_order(id)
+                else: response = get_all_orders()
+
+            if resource == "sizes":
+                if id is not None:
+                    response = get_single_size(id)
+                else: response = get_all_sizes()
+            
+            if resource == "styles":
+                if id is not None: 
+                    response = get_single_style(id)
+                else: response = get_all_styles()
+
+        else: 
+            if resource == 'metals':
+                response = get_all_metals(query_params)
+            elif resource == 'styles': 
+                response = get_all_styles(query_params)
+            elif resource == "sizes": 
+                response = get_all_sizes(query_params)
 
         self.wfile.write(json.dumps(response).encode())
 
@@ -68,7 +97,7 @@ class HandleRequests(BaseHTTPRequestHandler):
         post_body = json.loads(post_body)
 
         # Parse the URL
-        (resource, id) = self.parse_url(self.path)
+        (resource, id, query_params) = self.parse_url(self.path)
 
         # Initialize new animal
         new_order = None
@@ -90,11 +119,17 @@ class HandleRequests(BaseHTTPRequestHandler):
         post_body = json.loads(post_body)
 
         # Parse the URL
-        (resource, id) = self.parse_url(self.path)
+        (resource, id, query_params) = self.parse_url(self.path)
 
         # Delete a single animal from the list
         if resource == "orders":
             update_order(id, post_body)
+
+        if resource == "styles": 
+            update_style(id, post_body)
+
+        if resource == "sizes":
+            update_size(id, post_body)
 
         # Encode the new animal and send in response
         self.wfile.write("".encode())
@@ -125,7 +160,7 @@ class HandleRequests(BaseHTTPRequestHandler):
         self._set_headers(204)
 
         # Parse the URL
-        (resource, id) = self.parse_url(self.path)
+        (resource, id, query_params) = self.parse_url(self.path)
 
         # Delete a single animal from the list
         if resource == "orders":
