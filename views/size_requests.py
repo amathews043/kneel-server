@@ -3,38 +3,6 @@ import json
 
 from models import Size
 
-SIZES = [
-        { 
-            "id": 1, 
-            "carets": 0.5, 
-            "price": 405 
-        },
-
-        { 
-            "id": 2, 
-            "carets": 0.75, 
-            "price": 782 
-        },
-
-        { 
-            "id": 3, 
-            "carets": 1, 
-            "price": 1470 
-        },
-
-        { 
-            "id": 4, 
-            "carets": 1.5, 
-            "price": 1997 
-        },
-
-        { 
-            "id": 5, 
-            "carets": 2, 
-            "price": 3638 
-        }
-    ]
-
 def get_all_sizes():
     """function to get all size options """
 
@@ -83,3 +51,23 @@ def get_single_size(id):
         size = Size(data['id'], data['carets'], data['price'])
 
         return size.__dict__
+    
+def update_size(id, new_size):
+    """function to update a size record in the database"""
+    with sqlite3.connect("./kneeldiamonds.sqlite3") as conn: 
+        db_cursor = conn.cursor()
+
+        db_cursor.execute("""
+        UPDATE Sizes
+            SET 
+                carets = ?, 
+                price = ?
+        WHERE id = ?
+        """, (new_size['carets'], new_size['price'], id))
+
+        rows_affected = db_cursor.rowcount
+
+    if rows_affected == 0: 
+        return False 
+    else: 
+        return True
